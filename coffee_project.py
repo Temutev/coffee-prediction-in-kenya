@@ -9,6 +9,36 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 st.set_option('deprecation.showPyplotGlobalUse', False)
 
+
+# Set Streamlit page title and favicon
+st.set_page_config(page_title="Coffee Yield Prediction", page_icon="☕")
+
+# Custom CSS to enhance the app's style
+st.markdown(
+    """
+        <style>
+            .stApp {
+                background-color: #E9CBA7; /* Light brown background, representing coffee */
+            }
+            .st-eb {
+                background-color: #824D40; /* Dark brown error box */
+                color: white; /* White text for error boxes */
+                font-weight: bold;
+            }
+            .st-bd {
+                background-color: #D2AA88; /* Light brown info box */
+            }
+            body {
+                font-size: 16px; /* Increase the font size to 16px */
+            }
+        </style>
+
+
+
+    """,
+    unsafe_allow_html=True
+)
+
 # Load data
 coffee_kenya = pd.read_csv("coffee_kenya.csv")
 total_sales = pd.read_csv("total_sales.csv")
@@ -70,7 +100,72 @@ st.header("Exploratory Data Analysis (EDA)")
 st.subheader("Summary Statistics")
 st.write(coffee_data.describe())
 
+
+
+# finding out the counties with the highest production over the years 
+#grouping the data by year and county
+production_by_year_county = coffee_data.groupby(["YEAR", "COUNTY"])["PRODUCTION (Kgs)"].sum().reset_index().nlargest(5, "YEAR")
+st.write("The following counties have the highest coffee production in 2005")
+st.write(production_by_year_county)
+
+least_production_by_year_county = coffee_data.groupby(["YEAR", "COUNTY"])["PRODUCTION (Kgs)"].sum().reset_index().nsmallest(5, "YEAR")
+
+st.write("The following counties have the least coffee production in 2000.")
+st.write(least_production_by_year_county)
+
+# general counties with the highest production
+# Create two columns
+col1, col2 = st.columns(2)
+
+# Top 5 counties with the highest production
+top_5_counties = coffee_data.groupby("COUNTY")["PRODUCTION (Kgs)"].sum().sort_values(ascending=False).head(5)
+
+# Plot using seaborn in the first column
+with col1:
+    plt.figure(figsize=(10, 6))
+    sns.barplot(x=top_5_counties.index, y=top_5_counties.values)
+    plt.title("Top 5 Counties with Highest Production")
+    plt.xlabel("County")
+    plt.ylabel("Production (Kgs)")
+    st.pyplot()
+
+# Bottom 5 counties with the least production
+bottom_5_counties = coffee_data.groupby("COUNTY")["PRODUCTION (Kgs)"].sum().sort_values(ascending=False).tail(5)
+
+# Plot using seaborn in the second column
+with col2:
+    plt.figure(figsize=(10, 6))
+    sns.barplot(x=bottom_5_counties.index, y=bottom_5_counties.values)
+    plt.title("Bottom 5 Counties with Lowest Production")
+    plt.xlabel("County")
+    plt.ylabel("Production (Kgs)")
+    st.pyplot()
+#how was the production in the last 5 years
+
+#grouping the data by year
+production_by_year = coffee_data.groupby("YEAR")["PRODUCTION (Kgs)"].sum()
+
+#plot using seaborn
+plt.figure(figsize=(10, 6))
+sns.lineplot(x=production_by_year.index, y=production_by_year.values)
+plt.title("Coffee Production in the Last 5 Years")
+plt.xlabel("Year")
+plt.ylabel("Production (Kgs)")
+
+st.pyplot()
+st.write("Over the 5-year period from 2000 to 2005, the coffee production showed some variations:")
+st.write("- In 2000, the production was around 1.85 million units.")
+st.write("- It increased to approximately 2.62 million units in 2001.")
+st.write("- Then, it slightly dipped in 2002 to roughly 2.36 million units.")
+st.write("- The production remained relatively stable in 2003, at about 1.92 million units.")
+st.write("- In 2004, it increased again to nearly 1.99 million units.")
+st.write("- Finally, in 2005, there was a notable rise in production, reaching approximately 2.49 million units.")
+st.write("These changes reflect the dynamic nature of coffee production during this period.")
+
+
+
 st.subheader("Data Visualization")
+
 plt.figure(figsize=(10, 6))
 sns.scatterplot(x="RAINFALL (mm)", y="PRODUCTION (Kgs)", data=coffee_data)
 plt.title("Rainfall vs.Production")
